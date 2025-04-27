@@ -1,0 +1,121 @@
+import './App.css';
+import { useState, useEffect } from 'react';
+
+// Components ----------------------------------------------------------------------------------------------------
+
+function SearchInput({ inputValue, setInputValue, setShowSuggestions }) {
+  return (
+    <input 
+      value={inputValue}
+      onChange={(e) => {
+        setInputValue(e.target.value);
+        setShowSuggestions(true); // ← RE-ENABLE suggestions on typing
+      }}
+      onFocus={() => setShowSuggestions(true)}
+      onBlur={() => setTimeout(() => setShowSuggestions(false), 100)} // slight delay
+    />
+  );
+}
+
+
+function SearchButton({ searchPokemon, inputValue }) {
+  return (
+    <button 
+      className="search-button" 
+      onClick={() => searchPokemon(inputValue)}
+    >
+      Search Pokémon
+    </button>
+  );
+}
+
+// Helper function to capitalize the first letter of a string
+function capitalizeFirstLetter(string) {
+  return string.charAt(0).toUpperCase() + string.slice(1);
+}
+
+// Main App ------------------------------------------------------------------------------------------------------
+export default function PokeDex() {
+  // State variables
+  const [inputValue, setInputValue] = useState('');
+  const [pokemonData, setPokemonData] = useState(null);
+  const [pokemonList, setPokemonList] = useState([]);
+  const suggestions = pokemonList.filter(pokemon => pokemon.name.startsWith(inputValue.toLowerCase()));
+  const [showSuggestions, setShowSuggestions] = useState(true);
+
+  useEffect(() => {
+    fetchPokemonList();}, 
+  []);
+  
+  // Fetch the list of all Pokémon
+  // and store it in the state
+  function fetchPokemonList() {
+    fetch('https://pokeapi.co/api/v2/pokemon?limit=10000')
+    .then((response) => response.json())
+    .then((data) => {
+      setPokemonList(data.results);
+    })
+    .catch((error) => {
+      console.error('Error fetching Pokemon list:', error);
+    });
+  }
+
+  function searchPokemon(name = inputValue){
+    fetch(`https://pokeapi.co/api/v2/pokemon/${name}`)
+      .then((response) => response.json())
+      .then((data) => {
+        setPokemonData(data);
+      })
+      .catch((error) => {
+        console.error('Error fetching Pokemon data:', error);
+      });
+  }
+
+  function handleSuggestionClick(name) {
+    const capitalizedName = capitalizeFirstLetter(name);
+    setInputValue(capitalizedName);
+    searchPokemon(capitalizedName);
+    setShowSuggestions(false);
+  }
+  
+  
+  return (
+    // Main container
+    <div className='app-container'>
+      <h1>Pokédex</h1>
+      <div className="input-container">
+      <SearchInput 
+      inputValue={inputValue} 
+      setInputValue={setInputValue}
+      setShowSuggestions={setShowSuggestions}
+      />
+      {inputValue.length > 0 && suggestions.length > 0 && showSuggestions && (
+        <div className="suggestions-dropdown">
+        {suggestions.map((s, index) => (
+          <div 
+            key={index} 
+            className="suggestion-item"
+            onClick={() => handleSuggestionClick(s.name)}
+          >
+            {capitalizeFirstLetter(s.name)}
+          </div>
+        ))}
+      </div>
+      )}
+      </div>
+      <SearchButton searchPokemon={searchPokemon} inputValue={inputValue} />
+      {pokemonData && (
+        <div style={{ textAlign: 'center' }}>
+          <h2>
+            {capitalizeFirstLetter(pokemonData.name)} <span style={{ color: 'gray', fontWeight: 'normal'}}>#{pokemonData.id}</span>
+          </h2>
+          <img src={pokemonData.sprites.front_default} alt={pokemonData.name} />
+          <p>
+            Type: {pokemonData.types.map(t => capitalizeFirstLetter(t.type.name)).join(', ')}
+          </p>
+        </div>
+      )}
+    </div>
+  );
+}
+
