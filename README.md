@@ -1,3 +1,3 @@
 # Basic React Pokemon search app to practice React
 
-![image](https://github.com/user-attachments/assets/66b0f345-610a-4deb-8868-714d590e2efb)
+![image](https://github.com/user-attachments/assets/bd88fd10-9e43-4f1a-8aca-3f147801da29)
