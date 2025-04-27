@@ -5,7 +5,7 @@ import { useState, useEffect } from 'react';
 
 function SearchInput({ inputValue, setInputValue, setShowSuggestions }) {
   return (
-    <input 
+    <input
       value={inputValue}
       onChange={(e) => {
         setInputValue(e.target.value);
@@ -20,8 +20,8 @@ function SearchInput({ inputValue, setInputValue, setShowSuggestions }) {
 
 function SearchButton({ searchPokemon, inputValue }) {
   return (
-    <button 
-      className="search-button" 
+    <button
+      className="search-button"
       onClick={() => searchPokemon(inputValue)}
     >
       Search Pokémon
@@ -44,9 +44,9 @@ export default function PokeDex() {
   const [showSuggestions, setShowSuggestions] = useState(true);
 
   useEffect(() => {
-    fetchPokemonList();}, 
+    fetchPokemonList();},
   []);
-  
+
   // Fetch the list of all Pokémon
   // and store it in the state
   function fetchPokemonList() {
@@ -77,23 +77,23 @@ export default function PokeDex() {
     searchPokemon(capitalizedName);
     setShowSuggestions(false);
   }
-  
-  
+
+
   return (
     // Main container
     <div className='app-container'>
       <h1>Pokédex</h1>
       <div className="input-container">
-      <SearchInput 
-      inputValue={inputValue} 
+      <SearchInput
+      inputValue={inputValue}
       setInputValue={setInputValue}
       setShowSuggestions={setShowSuggestions}
       />
       {inputValue.length > 0 && suggestions.length > 0 && showSuggestions && (
         <div className="suggestions-dropdown">
         {suggestions.map((s, index) => (
-          <div 
-            key={index} 
+          <div
+            key={index}
             className="suggestion-item"
             onClick={() => handleSuggestionClick(s.name)}
           >
@@ -109,13 +109,59 @@ export default function PokeDex() {
           <h2>
             {capitalizeFirstLetter(pokemonData.name)} <span style={{ color: 'gray', fontWeight: 'normal'}}>#{pokemonData.id}</span>
           </h2>
-          <img src={pokemonData.sprites.front_default} alt={pokemonData.name} />
-          <p>
-            Type: {pokemonData.types.map(t => capitalizeFirstLetter(t.type.name)).join(', ')}
-          </p>
+          <table className="pokemon-info-table">
+            <tbody>
+              <tr>
+                <td colSpan="2">
+                  <img src={pokemonData.sprites.front_default} alt={pokemonData.name} />
+                </td>
+              </tr>
+              <tr>
+                <td>Type: </td>
+                <td>{pokemonData.types.map(t => capitalizeFirstLetter(t.type.name)).join(', ')}</td>
+              </tr>
+              <tr>
+                <td>Height: </td>
+                <td>{pokemonData.height / 10} m</td>
+              </tr>
+              <tr>
+                <td>Weight: </td>
+                <td>{pokemonData.weight / 10} kg</td>
+              </tr>
+              <tr>
+                <td>Abilities: </td>
+                <td>{pokemonData.abilities.map(a => capitalizeFirstLetter(a.ability.name)).join(', ')}</td>
+              </tr>
+              <tr>
+                <td>Stats: </td>
+                <td>
+                  <table style={{ width: '100%', borderCollapse: 'collapse' }}>
+                    <tbody>
+                      {pokemonData.stats.map((stat) => (
+                        <tr key={stat.stat.name}>
+                          <td style={{ textAlign: 'left', padding: '4px', fontWeight: 'bold' }}>
+                            {capitalizeFirstLetter(stat.stat.name)}
+                          </td>
+                          <td style={{ textAlign: 'right', padding: '4px' }}>
+                            {stat.base_stat}
+                          </td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </td>
+              </tr>
+            </tbody>
+          </table>
+
         </div>
       )}
     </div>
   );
 }
 
+
+// <img src={pokemonData.sprites.front_default} alt={pokemonData.name} />
+//           <p>
+//             Type: {pokemonData.types.map(t => capitalizeFirstLetter(t.type.name)).join(', ')}
+//           </p>
