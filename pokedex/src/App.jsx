@@ -1,18 +1,36 @@
 import './App.css';
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 
 // Components ----------------------------------------------------------------------------------------------------
 
-function SearchInput({ inputValue, setInputValue, setShowSuggestions }) {
+function SearchInput({ inputValue, setInputValue, setShowSuggestions, suggestions, selectedIndex, setSelectedIndex, handleSelectSuggestion }) {
+  // Handle keyboard navigation
+  const handleKeyDown = (event) => {
+    if (event.key === 'ArrowDown') {
+      event.preventDefault();
+      setSelectedIndex((prevIndex) => (prevIndex + 1) % suggestions.length);
+    } else if (event.key === 'ArrowUp') {
+      event.preventDefault();
+      setSelectedIndex((prevIndex) => (prevIndex - 1 + suggestions.length) % suggestions.length);
+    } else if (event.key === 'Enter') {
+      event.preventDefault();
+      if (suggestions[selectedIndex]) {
+        handleSelectSuggestion(suggestions[selectedIndex].name);
+      }
+    }
+  };
+
   return (
     <input
       value={inputValue}
       onChange={(e) => {
         setInputValue(e.target.value);
-        setShowSuggestions(true); // ← RE-ENABLE suggestions on typing
+        setShowSuggestions(true); // Re-enable suggestions on typing
+        setSelectedIndex(0); // Reset selected index when typing
       }}
       onFocus={() => setShowSuggestions(true)}
-      onBlur={() => setTimeout(() => setShowSuggestions(false), 100)} // slight delay
+      onBlur={() => setTimeout(() => setShowSuggestions(false), 100)} // Slight delay
+      onKeyDown={handleKeyDown}
     />
   );
 }
@@ -42,6 +60,7 @@ export default function PokeDex() {
   const [damageRelations, setDamageRelations] = useState({});
   const suggestions = pokemonList.filter(pokemon => pokemon.name.startsWith(inputValue.toLowerCase()));
   const [showSuggestions, setShowSuggestions] = useState(true);
+  const [selectedIndex, setSelectedIndex] = useState(0);
 
   useEffect(() => {
     fetchPokemonList();
@@ -84,7 +103,8 @@ export default function PokeDex() {
     });
   }
 
-  function handleSuggestionClick(name) {
+
+  function handleSelectSuggestion(name) {
     const capitalizedName = capitalizeFirstLetter(name);
     setInputValue(capitalizedName);
     searchPokemon(capitalizedName);
@@ -99,14 +119,18 @@ export default function PokeDex() {
           inputValue={inputValue}
           setInputValue={setInputValue}
           setShowSuggestions={setShowSuggestions}
+          setSelectedIndex={setSelectedIndex}
+          selectedIndex={selectedIndex}
+          suggestions={suggestions}
+          handleSelectSuggestion={handleSelectSuggestion}
         />
         {inputValue.length > 0 && suggestions.length > 0 && showSuggestions && (
           <div className="suggestions-dropdown">
             {suggestions.map((s, index) => (
               <div
                 key={index}
-                className="suggestion-item"
-                onClick={() => handleSuggestionClick(s.name)}
+                className={`suggestion-item ${index === selectedIndex ? 'highlighted' : ''}`}
+                onClick={() => handleSelectSuggestion(s.name)}
               >
                 {capitalizeFirstLetter(s.name)}
               </div>
